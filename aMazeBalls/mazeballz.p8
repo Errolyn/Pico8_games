@@ -63,9 +63,8 @@ end
 function gameover_update()
     if btn(btn_x) then
         state = game_state
-        ball.lives += 3
+        ball = reset_ball_state
     end
-
 end
 
 function gameover_draw()
@@ -101,13 +100,26 @@ pads = {
     },
 }
 
+reset_ball_state = {
+    x = 0,
+    y = 56,
+    t_x = 0,
+    t_x_v = 2,
+    t_y = 56,
+    v_x = 0,
+    v_y = 0,
+    lives = 3,
+    current_start_pad_name = 'start_pad',
+    current_pad_name = 'start_pad'
+}
+
 function is_game_over()
     printh("Game over")
     state = gameover_state
 end
 
 function what_is_current_sprite()
-    return mget(flr((ball.x + 4) / 8), flr((ball.y) / 8))
+    return mget(flr((ball.x + 4) / 8), flr((ball.y + 4) / 8))
 end
 
 function speed_boost() 
@@ -132,11 +144,15 @@ end
 function check_status()
     start_posistion = pads[ball.current_start_pad_name]
     current_sprite = what_is_current_sprite()
-    if (current_sprite == 0 or current_sprite == 8 ) and ((ball.v_x > 0 ) or (ball.v_x < -0 ) ) then
+    if (current_sprite == 0 or current_sprite == 8 ) then
         reset_ball()
-    elseif current_sprite == 6 and (ball.v_x <= .5 and ball.v_x >= -.5) then
+    elseif current_sprite == 6 and (ball.v_x <= .5 and ball.v_x >= -.5) and (ball.v_y <= .5 and ball.v_y >= -.5) then
         next_level()
         printh(tostr(current_sprite))
+    end
+
+    if (current_sprite == 23 ) then
+        printh("You win")
     end
 
     if ball.lives <= 0 then
@@ -162,9 +178,7 @@ function next_level()
 
     ball.x = new_pad_x()
     ball.y = new_pad_y()
-    ball.v_x = .0
-    
-    
+    ball.v_x = .0   
 end
 
 function movement()
@@ -172,28 +186,41 @@ function movement()
     if btn(btn_right) and ((ball.v_x <= 2) and (ball.v_x >= -2)) then
         ball.v_x += .5
     elseif  btn(btn_left) and ((ball.v_x <= 2) and (ball.v_x >= -2)) then
-        ball.v_x += -.5    
+        ball.v_x += -.5
+    elseif  btn(btn_down) and ((ball.v_y <= 2) and (ball.v_y >= -2)) then
+        ball.v_y += .5
+    elseif  btn(btn_up) and ((ball.v_y <= 2) and (ball.v_y >= -2)) then
+        ball.v_y += -.5  
     end
 
     if (ball.v_x < .1 and ball.v_x > -.1) or (ball.v_x > -.1 and ball.v_x < .1 )then
         ball.v_x = 0
     end
 
+    if (ball.v_y < .1 and ball.v_y > -.1) or (ball.v_y > -.1 and ball.v_y < .1 )then
+        ball.v_y = 0
+    end
+
     if ball.v_x < 0 then
         ball.v_x += .1
     elseif ball.v_x > 0 then
         ball.v_x -= .1
-    end  
+    end
 
+    if ball.v_y < 0 then
+        ball.v_y += .1
+    elseif ball.v_y > 0 then
+        ball.v_y -= .1
+    end
+
+    ball.y += ball.v_y
     ball.x += ball.v_x
     speed_boost()   
 end
 
 function game_update()
     movement()
-    check_status()
-    
-    
+    check_status()  
 end
 
 function game_draw()
